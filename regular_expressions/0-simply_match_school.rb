@@ -1,2 +1,7 @@
 #!/usr/bin/env ruby
-/School/ig
+import = ARGV[0]
+pattern = /\bSchool\b/
+if import.match?(pattern)
+  puts import
+end
+
