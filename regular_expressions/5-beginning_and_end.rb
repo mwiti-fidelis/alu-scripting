@@ -1,2 +1,2 @@
 #!/usr/bin/env ruby
-/h.*n/i
+/h*n/i
