@@ -44,7 +44,8 @@ def count_words(subreddit, word_list, instances={}, after="", count=0):
             if len(instances) == 0:
                 return
             # Sort by count (descending), then alphabetically (ascending)
-            sorted_subs = sorted(instances.items(), key=lambda kv: (-kv[1], kv[0]))
+            sorted_subs = sorted(
+                instances.items(), key=lambda kv: (-kv[1], kv[0]))
             for k, v in sorted_subs:
                 print("{}: {}".format(k, v))
         else:
