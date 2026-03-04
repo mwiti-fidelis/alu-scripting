@@ -1,37 +1,27 @@
 #!/usr/bin/python3
 """
-Query the Reddit API and return the number of subscribers for a given subreddit.
+Module to query the Reddit API for subscriber counts.
 """
-
 import requests
-import sys
+
 
 def number_of_subscribers(subreddit):
     """
-    Return the number of subscribers for a given subreddit.
-    Returns:
-        int: Number of subscribers, or 0 if the subreddit is invalid.
+    Queries the Reddit API and returns the number of subscribers
+    for a given subreddit. If the subreddit is invalid, returns 0.
     """
-    url = f"https://www.reddit.com/r/{subreddit}/about.json"
-
+    url = "https://www.reddit.com/r/{}/about.json".format(subreddit)
     headers = {
-        'User-Agent': 'python:alx_api_advanced:v1.0.0 (by /u/your_username)'
+        'User-Agent': 'linux:0x16.api.advanced:v1.0.0 (by /u/bdov_)'
     }
 
-    try:
-        response = requests.get(url, headers=headers, allow_redirects=False)
+    response = requests.get(url, headers=headers, allow_redirects=False)
 
-        if response.status_code == 200:
-            data = response.json()
-            return data.get('data', {}).get('subscribers', 0)
-        else:
-            return 0
-
-    except Exception:
+    if response.status_code != 200:
         return 0
 
-if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print("Please pass an argument for the subreddit to search.")
-    else:
-        print("{:d}".format(number_of_subscribers(sys.argv[1])))
+    try:
+        data = response.json().get("data")
+        return data.get("subscribers")
+    except Exception:
+        return 0
