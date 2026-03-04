@@ -1,26 +1,37 @@
 #!/usr/bin/python3
 """
-Query the Reddit API and return the number of subscribers
-for a given subreddit.
+Query the Reddit API and return the number of subscribers for a given subreddit.
 """
-import requests
 
+import requests
+import sys
 
 def number_of_subscribers(subreddit):
-    """Return the number of subscribers for a given subreddit."""
-    if not subreddit or not isinstance(subreddit, str):
-        return 0
+    """
+    Return the number of subscribers for a given subreddit.
+    Returns:
+        int: Number of subscribers, or 0 if the subreddit is invalid.
+    """
+    url = f"https://www.reddit.com/r/{subreddit}/about.json"
 
-    url = "https://www.reddit.com/r/{}/about.json".format(subreddit)
-    headers = {"User-Agent": "CustomUserAgent/1.0"}
+    headers = {
+        'User-Agent': 'python:alx_api_advanced:v1.0.0 (by /u/your_username)'
+    }
 
     try:
         response = requests.get(url, headers=headers, allow_redirects=False)
+
         if response.status_code == 200:
             data = response.json()
-            return data.get("data", {}).get("subscribers", 0)
+            return data.get('data', {}).get('subscribers', 0)
         else:
-            # Invalid subreddit or redirect
             return 0
+
     except Exception:
         return 0
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("Please pass an argument for the subreddit to search.")
+    else:
+        print("{:d}".format(number_of_subscribers(sys.argv[1])))
