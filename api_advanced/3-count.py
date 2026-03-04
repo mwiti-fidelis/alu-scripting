@@ -7,8 +7,12 @@ import requests
 import re
 
 
-def count_words(subreddit, word_list, hot_list=[], after=None):
-    # Reddit API endpoint
+def count_words(subreddit, word_list, hot_list=None, after=None):
+    """Recursively fetch hot posts from Reddit API."""
+    if hot_list is None:
+        hot_list = []
+    
+    # Fixed URL (removed extra spaces)
     url = f"https://www.reddit.com/r/{subreddit}/hot.json"
     
     headers = {
@@ -33,7 +37,9 @@ def count_words(subreddit, word_list, hot_list=[], after=None):
         posts = data.get('data', {}).get('children', [])
         
         if not posts:
-            return None if not hot_list else hot_list
+            if not hot_list:
+                return None
+            return process_titles_recursive(hot_list, word_list, 0, {})
         
         # Add titles to hot_list
         for post in posts:
@@ -46,35 +52,57 @@ def count_words(subreddit, word_list, hot_list=[], after=None):
         if after:
             return count_words(subreddit, word_list, hot_list, after)
         else:
-            return process_titles(hot_list, word_list)
+            return process_titles_recursive(hot_list, word_list, 0, {})
     
     except Exception:
         return None
 
 
-def process_titles(titles, word_list):
-    word_list = [word.lower() for word in word_list]
-    word_counts = {}
-    for title in titles:
-        title_lower = title.lower()
-        
-        for word in word_list:
-            # Use regex to find whole word matches
-            pattern = r'\b' + re.escape(word) + r'\b'
-            matches = re.findall(pattern, title_lower, re.IGNORECASE)
-            
-            if word in word_counts:
-                word_counts[word] += len(matches)
-            else:
-                word_counts[word] = len(matches)
+def process_titles_recursive(titles, word_list, title_index, word_counts):
+    """Recursively process titles and count words."""
+    # Base case: all titles processed
+    if title_index >= len(titles):
+        return word_counts
     
-    return word_counts
+    # Process current title
+    current_title = titles[title_index]
+    word_counts = count_words_in_title_recursive(current_title, word_list, 0, word_counts)
+    
+    # Recursive call for next title
+    return process_titles_recursive(titles, word_list, title_index + 1, word_counts)
+
+
+def count_words_in_title_recursive(title, word_list, word_index, word_counts):
+    """Recursively count words from word_list in a title."""
+    # Base case: all words processed
+    if word_index >= len(word_list):
+        return word_counts
+    
+    # Get current word (lowercase for case-insensitive matching)
+    current_word = word_list[word_index].lower()
+    
+    # Count occurrences using regex for whole word matching
+    title_lower = title.lower()
+    pattern = r'\b' + re.escape(current_word) + r'\b'
+    matches = re.findall(pattern, title_lower)
+    count = len(matches)
+    
+    # Update word_counts
+    if current_word in word_counts:
+        word_counts[current_word] += count
+    else:
+        word_counts[current_word] = count
+    
+    # Recursive call for next word
+    return count_words_in_title_recursive(title, word_list, word_index + 1, word_counts)
 
 
 def print_results(word_counts):
+    """Print results sorted by count (desc) then alphabetically (asc)."""
     if not word_counts:
         return
 
+    # Filter out words with 0 count
     filtered_counts = {k: v for k, v in word_counts.items() if v > 0}
     
     if not filtered_counts:

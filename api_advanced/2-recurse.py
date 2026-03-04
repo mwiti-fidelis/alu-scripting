@@ -1,48 +1,58 @@
 #!/usr/bin/python3
 """
-Query the Reddit API that return s list of titles for all hot articles for a given subreddit
+Query the Reddit API and return a list of titles for all hot articles for a given subreddit.
 """
 
-
 import requests
-import sys
 
-def recurse(subreddit, hot_list=[]):
-    # Reddit API endpoint for hot posts
+
+def recurse(subreddit, hot_list=None, after=None):
+    """
+    Recursively query the Reddit API and return a list of titles for all hot articles.
+    """
+    # Initialize hot_list on first call to avoid mutable default argument issue
+    if hot_list is None:
+        hot_list = []
+    
+    # Fixed URL (removed extra spaces)
     url = f"https://www.reddit.com/r/{subreddit}/hot.json"
 
     headers = {
         'User-Agent': 'python:alx_api_advanced:v1.0.0 (by /u/your_username)'
     }
 
-    # Get up to 100 posts per request
     params = {
-        'limit': 100  
+        'limit': 100
     }
 
-    # After parameter when paginating
+    # Now 'after' is properly defined as a parameter
     if after:
         params['after'] = after
 
     try:
         response = requests.get(url, headers=headers, params=params, allow_redirects=False)
+        
+        # Check for invalid subreddit (status code not 200)
         if response.status_code != 200:
             return None
         
         data = response.json()
-        # Acess the posts
         posts = data.get('data', {}).get('children', [])
 
+        # If no posts and hot_list is empty, return None
         if not posts:
             return None if not hot_list else hot_list
         
+        # Add titles to hot_list
         for post in posts:
             title = post.get('data', {}).get('title')
             if title:
                 hot_list.append(title)
-        # get the after value for pagination
+        
+        # Get the 'after' value for pagination
         after = data.get('data', {}).get('after')
 
+        # Recursive call if there are more posts
         if after:
             return recurse(subreddit, hot_list, after)
         else:
@@ -53,7 +63,8 @@ def recurse(subreddit, hot_list=[]):
 
 
 if __name__ == '__main__':
-    recurse = __import__('2-recurse').recurse
+    import sys
+    
     if len(sys.argv) < 2:
         print("Please pass an argument for the subreddit to search.")
     else:
