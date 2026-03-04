@@ -1,43 +1,33 @@
 #!/usr/bin/python3
 """
-Query the Reddit API and print the titles of the first 10 hot posts for a given subreddit.
+Module that queries the Reddit API and prints the titles
+of the first 10 hot posts listed for a given subreddit.
 """
-
-import sys
 import requests
 
 
 def top_ten(subreddit):
-    url = f"https://www.reddit.com/r/{subreddit}/hot.json"
-
+    """
+    Queries the Reddit API and prints the titles of the first 10 hot posts.
+    If not a valid subreddit, prints None.
+    """
+    url = "https://www.reddit.com/r/{}/hot.json".format(subreddit)
     headers = {
-        'User-Agent': 'python:alx_api_advanced:v1.0.0 (by /u/your_username)'
+        'User-Agent': 'linux:0x16.api.advanced:v1.0.0 (by /u/bdov_)'
     }
-
     params = {
         'limit': 10
     }
 
     try:
-        response = requests.get(url, headers=headers, params=params, allow_redirects=False)
-
+        response = requests.get(url, headers=headers, params=params,
+                                allow_redirects=False)
         if response.status_code == 200:
-            data = response.json()
-            posts = data.get('data', {}).get('children', [])
-
-            for post in posts:
-                title = post.get('data', {}).get('title', '')
-                if title:
-                    print(title)
+            data = response.json().get('data')
+            children = data.get('children')
+            for post in children:
+                print(post.get('data').get('title'))
         else:
             print("None")
-
     except Exception:
         print("None")
-
-
-if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print("Please pass an argument for the subreddit to search.")
-    else:
-        top_ten(sys.argv[1])
